@@ -152,11 +152,7 @@ public class HDFSOP {
             list.sort(new Comparator<String>() {
                 @Override
                 public int compare(String o1, String o2) {
-                    if (spam) {
-                        return o1.substring(o1.indexOf('/') + 1).compareTo(o2.substring(o2.indexOf('/')));
-                    } else {
-                        return o1.compareTo(o2);
-                    }
+                    return o1.substring(o1.lastIndexOf('/')).compareTo(o2.substring(o2.lastIndexOf('/')));
                 }
             });
         } else {
@@ -174,5 +170,35 @@ public class HDFSOP {
         }
 
         return result;
+    }
+
+    public static String getServer(double lat, double lon) {
+        String[] servers = readFile("/serverList.txt").split("\n");
+        double minDist = Double.MAX_VALUE;
+        String server = "";
+        for (String s : servers) {
+            String[] info = s.split(":");
+            String[] geotag = info[0].split(",");
+            double dist = distance(lat, new Double(geotag[0]), lon, new Double(geotag[1]));
+            System.out.println(dist);
+            if (dist < minDist) {
+                minDist = dist;
+                server = info[1];
+            }
+        }
+        return server;
+    }
+
+    private static double distance(double lat1, double lat2, double lon1, double lon2) {
+
+        final int R = 6371; // Radius of the earth
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // convert to km
     }
 }
