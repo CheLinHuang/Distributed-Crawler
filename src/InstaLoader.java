@@ -120,21 +120,19 @@ public class InstaLoader extends Thread {
 
                         Collections.sort(f);
                         String endTime = f.get((f.size() - 1)).substring(0, 19);
-                        String docID = "", caption = "", timestamp = "X", geotag = "";
-                        String[] geotags;
+                        String docID = "", caption = "", timestamp = "X", geotag = "", pic = "";
 
                         for (String s : f) {
 
                             if (!s.startsWith(timestamp)) {
                                 timestamp = s.substring(0, 19);
-                                docID = timestamp + hashtag;
+                                docID = hashtag + "@" + timestamp;
                             }
                             if (s.endsWith("location.txt")) {
-                                geotags = extractGeotag(hashtag + "/" + s);
-                                geotag = geotags[1];
+                                geotag = extractGeotag(s + hashtag + "/" + s)[1].replace(',', '@');
                             }
-                            if (s.endsWith("UTC.jpg") || s.endsWith("UTC.mp4")) {
-                                // TODO
+                            if (s.endsWith("UTC.jpg")) {
+                                pic = s;
                             }
                             if (s.endsWith("UTC.txt")) {
                                 caption = extractCaption(hashtag + "/" + s);
@@ -146,8 +144,7 @@ public class InstaLoader extends Thread {
                                 System.out.println("geotag: " + geotag);
                                 System.out.println();
 
-
-                                if (extractHashtag(caption).size() <= 8) {
+                                if (!geotag.equals("") && pic.endsWith(".jpg") && caption.contains(hashtag)) {
                                     try {
                                         out.writeUTF(docID);
                                         out.writeUTF(caption);
@@ -155,9 +152,12 @@ public class InstaLoader extends Thread {
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
-                                }
 
+                                    HDFSOP.sendFile("/" + hashtag + "/" + s, "/realtime/" + hashtag + "/" + timestamp + "@" + geotag + "@.txt");
+                                    HDFSOP.sendFile("/" + hashtag + "/" + pic, "/pic/" + docID + ".jpg");
+                                }
                                 geotag = "";
+                                pic = "";
                             }
 
                             // TODO: HDFS and HBase operation
@@ -187,6 +187,5 @@ public class InstaLoader extends Thread {
         } catch (IOException ee) {
             ee.printStackTrace();
         }
-
     }
 }

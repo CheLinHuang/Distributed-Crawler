@@ -133,6 +133,7 @@ public class HDFSOP {
     // realtime: realtime data or test data
     // spam: include spam or not
     // sortByTime: sort by time or not
+    // return list of string array {docID, post content, timestamp, latitude, longitude}
     public static List<String[]> getData(boolean realtime, boolean spam, boolean sortByTime) {
         String folder;
         if (!realtime) {
@@ -170,7 +171,6 @@ public class HDFSOP {
             String hashTag = s.substring(s.lastIndexOf('/', index - 1) + 1, index);
             String[] ids = id.split("@");
             result.add(new String[]{hashTag + "@" + ids[0], readFile(s), ids[0], ids[1], ids[2]});
-            // docID, post content, timestamp, latitude, longitude
         }
 
         return result;
